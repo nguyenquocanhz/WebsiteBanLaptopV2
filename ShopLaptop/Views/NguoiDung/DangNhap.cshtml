@@ -1,0 +1,94 @@
+﻿@{
+    ViewBag.Title = "DangNhap";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<header class="py-5" style="background: linear-gradient(90deg, #00d4ff 0%, #c80979 35%, #00d4ff 100%);">
+    <div class="container px-4 my-4">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Đăng nhập</h1>
+            <p class="lead fw-normal mb-0" style="color: #b3ffb3;">Vui lòng nhập thông tin để đăng nhập! 🔑</p>
+        </div>
+    </div>
+</header>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7 col-sm-9">
+            <div class="card shadow-lg p-4 rounded-4" style="border-radius: 20px;">
+                <h4 class="text-center mb-4">Đăng nhập</h4>
+                @using (Html.BeginForm("DangNhap", "NguoiDung", FormMethod.Post, new { id = "loginForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        @Html.Label("Username", new { @class = "form-label fw-semibold" })
+                        @Html.TextBox("tendangnhap", null, new { @class = "form-control rounded-3", placeholder = "Nhập tên đăng nhập", id = "tendangnhap" })
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Mật khẩu", new { @class = "form-label fw-semibold" })
+                        @Html.Password("matkhau", null, new { @class = "form-control rounded-3", placeholder = "Nhập mật khẩu", id = "matkhau" })
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-3 fw-bold">Đăng nhập</button>
+                    </div>
+                }
+                <div class="text-center mt-3">
+                    <a href='/auth/register' class="text-decoration-none text-primary fw-semibold">Chưa có tài khoản? Đăng ký</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#loginForm").submit(function (event) {
+            event.preventDefault();
+
+            var username = $("#tendangnhap").val().trim();
+            var password = $("#matkhau").val().trim();
+
+            if (username === "" || password === "") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Lỗi!',
+                    text: 'Vui lòng nhập đầy đủ thông tin đăng nhập.'
+                });
+                return;
+            }
+
+            var formData = {
+                tendangnhap: username,
+                matkhau: password,
+                __RequestVerificationToken: $('input[name=__RequestVerificationToken]').val()
+            };
+
+            $.post('@Url.Action("DangNhap", "NguoiDung")', formData)
+                .done(function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Đăng nhập thành công!',
+                            text: "Bạn sẽ được chuyển hướng...",
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            window.location.href = response.redirectUrl || '@Url.Action("Index", "Home")';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Đăng nhập thất bại!',
+                            text: response.message || 'Tên đăng nhập hoặc mật khẩu không chính xác.'
+                        });
+                    }
+                })
+                .fail(function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi hệ thống!',
+                        text: 'Có lỗi xảy ra, vui lòng thử lại sau.'
+                    });
+                });
+        });
+    });
+</script>

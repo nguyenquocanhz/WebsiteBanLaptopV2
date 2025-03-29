@@ -1,0 +1,158 @@
+﻿@model IEnumerable<ShopLaptop.Models.GioHang>
+@using ShopLaptop.Models
+
+@{
+    ViewBag.Title = "Đặt Hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+<header class="py-5" style="background: linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(156,9,121,1) 35%, rgba(0,212,255,1) 100%);">
+    <div class="container text-center text-white">
+        <h1 class="display-4 fw-bolder">Đơn Đặt Hàng</h1>
+        <p class="lead fw-normal" style="color: #4cff00;">Cảm ơn quý khách đã lựa chọn sản phẩm từ iLaptop! 🧡🧡🧡</p>
+    </div>
+</header>
+<div class="container mt-4">
+    <div class="text-end mb-3">
+        <a class="btn text-white" style="background-color: orangered" href="@Url.Action("Index", "Home")"> <i class="fa fa-shopping-basket"></i> Mua thêm?</a>
+    </div>
+    <div class="table-responsive">
+        <table id="tbl_exporttable_to_xls" class="table table-bordered text-center">
+            <thead class="table-primary">
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.tenlaptop) <i class="fa fa-laptop"></i></th>
+                    <th>@Html.DisplayNameFor(model => model.hinh) <i class="fa fa-image"></i></th>
+                    <th>@Html.DisplayNameFor(model => model.giaban) <i class="fa fa-money-bill"></i></th>
+                    <th>@Html.DisplayNameFor(model => model.iSoluong) <i class="fa fa-sort-numeric-up"></i></th>
+                    <th>@Html.DisplayNameFor(model => model.dThanhTien) <i class="fa fa-money-bill-wave-alt"></i></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.tenlaptop)</td>
+                        <td>
+                            <img src="@item.hinh" class="img-thumbnail" style="max-width: 100px;" />
+                        </td>
+                        <td>@String.Format("{0:0,0}", item.giaban) VNĐ</td>
+                        <td>@Html.DisplayFor(modelItem => item.iSoluong)</td>
+                        <td>@String.Format("{0:0,0}", item.dThanhTien) VNĐ</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="text-end text-danger fw-bold">
+        <p>Số lượng sản phẩm: @ViewBag.Tongsoluong</p>
+        <p>Tổng tiền: @String.Format("{0:0,0}", ViewBag.Tongtien) VNĐ</p>
+    </div>
+    <div class="text-end mt-3">
+        <a class="btn btn-info text-white" href="@Url.Action("GioHang", "GioHang")"> <i class="fa fa-backward"></i> Trở về giỏ hàng</a>
+        <button class="btn btn-success text-white" onclick="ExportToExcel('xlsx')"> <i class="fa fa-file-excel"></i> In đơn đặt hàng</button>
+    </div>
+</div>
+
+<div class="container my-5">
+    <h2 class="text-center mb-4">Thông tin đặt hàng</h2>
+    @{ KhachHang kh = (KhachHang)Session["TaiKhoan"]; }
+    <div class="card shadow p-4">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Họ tên khách hàng:</strong> @kh.hoten</p>
+                <p><strong>Email:</strong> @kh.email</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Điện thoại:</strong> @kh.dienthoai</p>
+                <p><strong>Ngày đặt:</strong> @DateTime.Now.ToLongDateString()</p>
+                <p>
+                    <strong>Ngày giao:</strong>
+                    <input type="date" id="ngayGiao" class="form-control d-inline-block w-75" />
+                </p>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button id="btnDatHang" class="btn btn-success mx-2">Xác nhận đặt hàng</button>
+        </div>
+    </div>
+</div>
+
+
+<div class="container text-center my-5">
+    <div id="paypal-button-container"></div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('#btnDatHang').on('click', function (e) {
+            e.preventDefault();
+            let ngayGiao = $('#ngayGiao').val();
+
+            if (!ngayGiao) {
+                Swal.fire("Lỗi", "Vui lòng chọn ngày giao hàng!", "error");
+                return;
+            }
+
+            Swal.fire({
+                title: "Đang xử lý...",
+                text: "Vui lòng chờ trong giây lát.",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: '@Url.Action("DatHangAjax", "GioHang")',
+                type: 'POST',
+                data: { ngayGiao: ngayGiao },
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: "Thành công",
+                            text: response.message,
+                            icon: "success"
+                        }).then(() => {
+                            window.location.href = '@Url.Action("XacnhanDonhang", "GioHang")';
+                        });
+                    } else {
+                        Swal.fire("Lỗi", response.message, "error");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error:", status, error);
+                    Swal.fire("Lỗi", "Không thể kết nối tới server. Vui lòng thử lại sau!", "error");
+                }
+            });
+        });
+    });
+</script>
+
+
+<script src="https://www.paypal.com/sdk/js?client-id=AQp0bP9doGYjWqSNND7itP0-UuuvqfLI8djlLy2QCnVllxwVNusgrhGcpipc4d7F7z_xWsM6ksFp34YI"></script>
+<script>
+    paypal.Buttons({
+        createOrder: function (data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: "@ViewBag.Tongtien
+                    }
+                }]
+            });
+        },
+        onApprove: function (data, actions) {
+            return actions.order.capture().then(function (details) {
+                alert('Thanh toán Paypal thành công bởi ' + details.payer.name.given_name);
+            });
+        }
+    }).render('#paypal-button-container');
+</script>
+<script>
+    function ExportToExcel(type, fn, dl) {
+        var elt = document.getElementById('tbl_exporttable_to_xls');
+        var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+        return dl ?
+            XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }) :
+            XLSX.writeFile(wb, fn || ('DonDatHang.' + (type || 'xlsx')));
+    }
+</script>

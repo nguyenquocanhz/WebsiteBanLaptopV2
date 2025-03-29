@@ -1,0 +1,112 @@
+﻿@{
+    ViewBag.Title = "DangKy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<header class="py-5" style="background: linear-gradient(90deg, #00d4ff 0%, #c80979 35%, #00d4ff 100%);">
+    <div class="container px-4 my-4">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Đăng ký tài khoản</h1>
+            <p class="lead fw-normal mb-0" style="color: #b3ffb3;">Vui lòng điền thông tin bên dưới để tạo tài khoản! 📝</p>
+        </div>
+    </div>
+</header>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7 col-sm-9">
+            <div class="card shadow-lg p-4 rounded-4" style="border-radius: 20px;">
+                <h4 class="text-center mb-4">Đăng ký</h4>
+                @using (Html.BeginForm("DangKy", "NguoiDung", FormMethod.Post, new { id = "registerForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        @Html.Label("Họ tên", new { @class = "form-label fw-semibold" })
+                        @Html.TextBox("hoten", null, new { @class = "form-control rounded-3", placeholder = "Nhập họ tên" })
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Username", new { @class = "form-label fw-semibold" })
+                        @Html.TextBox("tendangnhap", null, new { @class = "form-control rounded-3", placeholder = "Nhập tên đăng nhập" })
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Mật khẩu", new { @class = "form-label fw-semibold" })
+                        @Html.Password("matkhau", null, new { @class = "form-control rounded-3", placeholder = "Nhập mật khẩu" })
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Xác nhận mật khẩu", new { @class = "form-label fw-semibold" })
+                        <input type="password" name="MatKhauXacNhan" class="form-control rounded-3" placeholder="Nhập lại mật khẩu" required>
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Email", new { @class = "form-label fw-semibold" })
+                        @Html.TextBox("email", null, new { @class = "form-control rounded-3", placeholder = "Nhập email" })
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Địa chỉ :", new { @class = "form-label fw-semibold" })
+                        @Html.TextBox("diachi", null, new { @class = "form-control rounded-3", placeholder = "Nhập địa chỉ" })
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Số điện thoại:", new { @class = "form-label fw-semibold" })
+                        @Html.TextBox("soDienThoai", null, new { @class = "form-control rounded-3", placeholder = "Nhập số điện thoại" })
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Ngày sinh:", new { @class = "form-label fw-semibold" })
+                        <input type="date" name="ngaySinh" id="ngaySinh" class="form-control rounded-3" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-3 fw-bold">Đăng ký</button>
+                    </div>
+                }
+                <div class="text-center mt-3">
+                    <a href='auth/login' class="text-decoration-none text-primary fw-semibold">Đã có tài khoản? Đăng nhập</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#registerForm").submit(function (event) {
+            event.preventDefault();
+
+            var formData = {
+                hoten: $("#hoten").val(),
+                tendangnhap: $("#tendangnhap").val(),
+                matkhau: $("#matkhau").val(),
+                MatKhauXacNhan: $("input[name='MatKhauXacNhan']").val(),
+                email: $("#email").val(),
+                diaChi: $("#diachi").val(),
+                soDienThoai: $("#soDienThoai").val(),
+                ngaySinh: $("input[name='ngaySinh']").val(),
+                __RequestVerificationToken: $('input[name=__RequestVerificationToken]').val()
+            };
+
+            $.post('@Url.Action("DangKy", "NguoiDung")', formData)
+                .done(function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Đăng ký thành công!',
+                            text: "Bạn sẽ được chuyển hướng...",
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            window.location.href = '@Url.Action("Index", "Home")';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Đăng ký thất bại!',
+                            text: response.message
+                        });
+                    }
+                })
+                .fail(function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi hệ thống!',
+                        text: 'Có lỗi xảy ra, vui lòng thử lại sau.'
+                    });
+                });
+        });
+    });
+</script>

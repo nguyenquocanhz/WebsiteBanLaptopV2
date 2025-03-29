@@ -1,0 +1,140 @@
+﻿@model ShopLaptop.EF.Laptop
+
+@{
+    ViewBag.Title = "Tạo mới Laptop";
+    Layout = "~/Areas/Administrator/Views/Shared/_LayoutAdministrator.cshtml";
+}
+
+<script src="~/Plugins/ckeditor/ckeditor.js"></script>
+
+@section jsFooter {
+    <script>
+        CKEDITOR.replace('mota', {
+            customConfig: '/Plugin/ckeditor/config.js',
+        });
+    </script>
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center text-primary">Thêm sản phẩm mới</h2>
+        <hr />
+
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.tenlaptop, "Tên Laptop", new { @class = "form-label fw-bold" })
+                    @Html.EditorFor(model => model.tenlaptop, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.tenlaptop, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.giaban, "Giá Bán", new { @class = "form-label fw-bold" })
+                    @Html.EditorFor(model => model.giaban, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.giaban, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.mota, "Mô tả", new { @class = "form-label fw-bold" })
+                @Html.TextAreaFor(model => model.mota, new { @class = "form-control", rows = 5 })
+                @Html.ValidationMessageFor(model => model.mota, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.hinh, "Hình ảnh", new { @class = "form-label fw-bold" })
+                    <div class="input-group">
+                        @Html.EditorFor(model => model.hinh, new { htmlAttributes = new { @class = "form-control", @id = "hinh" } })
+                        <input type="file" id="fileUpload" name="fileUpload" accept="image/*" hidden />
+                        <button type="button" id="btnUpload" class="btn btn-outline-primary">Chọn ảnh</button>
+                    </div>
+                    @Html.ValidationMessageFor(model => model.hinh, "", new { @class = "text-danger" })
+                    <img id="pictureUpload" class="mt-2 img-thumbnail d-block" style="max-width: 150px;" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.mahang, "Hãng Laptop", new { @class = "form-label fw-bold" })
+                    @Html.DropDownList("mahang", null, "-- Chọn hãng --", new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.mahang, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.cpu, "CPU", new { @class = "form-label fw-bold" })
+                    @Html.EditorFor(model => model.cpu, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.cpu, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.gpu, "GPU", new { @class = "form-label fw-bold" })
+                    @Html.EditorFor(model => model.gpu, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.gpu, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.ram, "RAM", new { @class = "form-label fw-bold" })
+                    @Html.DropDownListFor(model => model.ram, new SelectList(new[] {
+                        new { Value = "8GB DDR4", Text = "8GB DDR4" },
+                        new { Value = "16GB DDR4", Text = "16GB DDR4" },
+                        new { Value = "32GB DDR4", Text = "32GB DDR4" },
+                        new { Value = "8GB DDR5", Text = "8GB DDR5" },
+                        new { Value = "16GB DDR5", Text = "16GB DDR5" },
+                        new { Value = "32GB DDR5", Text = "32GB DDR5" }
+                    }, "Value", "Text"), "-- Chọn RAM --", new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.ram, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-success px-4">Tạo mới</button>
+                <a href="@Url.Action("Index","Laptops")" class="btn btn-outline-secondary ms-2">Trở về</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section upload {
+    <script>
+        $(document).ready(function () {
+            $('#btnUpload').click(function () {
+                $('#fileUpload').trigger('click');
+            });
+
+            $('#fileUpload').change(function () {
+                var file = this.files[0];
+
+                if (file) {
+                    var objectURL = URL.createObjectURL(file); // Hiển thị ảnh tạm thời
+                    $('#pictureUpload').attr('src', objectURL);
+
+                    var formData = new FormData();
+                    formData.append("file", file);
+
+                    // Gửi file lên server bằng Ajax
+                    $.ajax({
+                        url: '@Url.Action("ProcessUpload", "Laptops", new { area = "Administrator" })', // Đảm bảo đường dẫn chính xác
+                        type: 'POST',
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        success: function (response) {
+                            if (response.success) {
+                                $('#pictureUpload').attr('src', response.imageUrl); // Cập nhật ảnh từ server
+                                $('#hinh').val(response.imageUrl); // Lưu đường dẫn vào input
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function () {
+                            alert("Lỗi khi upload ảnh!");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

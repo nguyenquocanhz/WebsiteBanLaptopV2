@@ -1,0 +1,35 @@
+﻿@model ShopLaptop.EF.NhuCau
+
+@{
+    ViewBag.Title = "Thêm nhu cầu sử dụng";
+    Layout = "~/Areas/Administrator/Views/Shared/_LayoutAdministrator.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center text-primary mb-4">Tạo Nhu Cầu</h2>
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                @Html.LabelFor(model => model.tennhucau, "Tên Nhu Cầu", htmlAttributes: new { @class = "form-label fw-bold" })
+                @Html.EditorFor(model => model.tennhucau, new { htmlAttributes = new { @class = "form-control", placeholder = "Nhập tên nhu cầu" } })
+                @Html.ValidationMessageFor(model => model.tennhucau, "", new { @class = "text-danger" })
+            </div>
+            <div class="d-flex justify-content-center">
+                <button type="submit" class="btn btn-success px-5">Tạo mới</button>
+            </div>
+        }
+        <div class="text-center mt-3">
+            <a class="btn btn-outline-secondary" href="@Url.Action("Index","NhuCaus")">
+                <img style="width:24px;height:24px;" src="~/Content/images/forward.png" data-bs-toggle="tooltip" data-bs-placement="top" title="Trở về" /> Trở về
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
